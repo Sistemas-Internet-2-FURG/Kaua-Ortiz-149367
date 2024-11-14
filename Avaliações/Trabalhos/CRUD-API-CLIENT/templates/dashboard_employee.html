@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>ABOUT</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="dashboard_employee.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Employee Dashboard</h2>
+        
+        <button id="clockInButton" class="button">Clock in</button>
+        <p id="message"></p>
+        
+        <a href="index.html" class="logout-link">Logout</a>  
+    </div>
+
+    <script>
+        document.getElementById("clockInButton").addEventListener("click", async () => {
+            try {
+                const response = await fetch("http://localhost:5000/dashboard/employee", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}` // Certifique-se de que o token está armazenado no localStorage
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById("message").innerText = data.message;
+                    document.getElementById("message").classList.add("success");
+                } else {
+                    document.getElementById("message").innerText = data.message || "Erro ao processar ponto";
+                    document.getElementById("message").classList.add("error");
+                }
+            } catch (error) {
+                document.getElementById("message").innerText = "Erro ao acessar a API";
+                document.getElementById("message").classList.add("error");
+                console.error("Erro:", error);
+            }
+        });
+    </script>
+</body>
+</html>

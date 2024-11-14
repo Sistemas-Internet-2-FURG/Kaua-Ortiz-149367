@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Enterprise Dashboard</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="dashboard_enterprise.css">
+    </head>
+    <body>
+        <h2>Enterprise Dashboard</h2>
+        
+        <div class="dashboard-container">
+            <!-- Check All Points -->
+            <div class="dashboard-section">
+                <button id="checkAllPoints">Check All Points</button>
+                <table id="pointsTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Clock In</th>
+                            <th>Clock Out</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pointsTableBody"></tbody>
+                </table>
+            </div>
+            
+            <!-- Edit Point per ID -->
+            <div class="dashboard-section">
+                <form id="editPointForm">
+                    <div class="input-group">
+                        <label for="id_ponto">Point ID:</label>
+                        <input type="text" id="id_ponto" name="id_ponto" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="hora_inicio">Clock In:</label>
+                        <input type="datetime-local" id="hora_inicio" name="hora_inicio" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="hora_final">Clock Out:</label>
+                        <input type="datetime-local" id="hora_final" name="hora_final" required>
+                    </div>                    
+                    <p class="success" id="editSuccess" style="display: none;"></p>
+                    <button type="submit">Edit Point per ID</button>
+                </form>
+            </div>
+            
+            <!-- Delete Point per ID -->
+            <div class="dashboard-section">
+                <form id="deletePointForm">
+                    <div class="input-group">
+                        <label for="id_ponto_delete">Point ID:</label>
+                        <input type="text" id="id_ponto_delete" name="id_ponto_delete" required>
+                    </div>
+                    <p class="success" id="deleteSuccess" style="display: none;"></p>
+                    <p class="error" id="deleteError" style="display: none;"></p>
+                    <button type="submit">Delete Point per ID</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="logout-section">
+            <a href="index.html">Logout</a>
+        </div>
+
+        <script>
+            // Função para buscar todos os pontos
+            document.getElementById("checkAllPoints").addEventListener("click", async function() {
+                try {
+                    const token = localStorage.getItem("token");
+                    const response = await fetch("http://127.0.0.1:5000/dashboard/enterprise", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                    });
+
+                    if (await response.ok) {
+                        const data = await response.json();
+                        const pointsTableBody = document.getElementById("pointsTableBody");
+                        pointsTableBody.innerHTML = ""; // Limpar tabela
+
+                        data.forEach(ponto => {
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${ponto.id_ponto}</td>
+                                <td>${ponto.nome}</td>
+                                <td>${ponto.hora_inicio}</td>
+                                <td>${ponto.hora_final}</td>
+                            `;
+                            pointsTableBody.appendChild(row);
+                        });
+
+                        document.getElementById("pointsTable").style.display = "table";
+                    } else {
+                        alert("Erro ao buscar pontos.");
+                    }
+                } catch (error) {
+                    console.error("Erro na requisição:", error);
+                }
+            });
+
+            // Função para editar um ponto específico
+            document.getElementById("editPointForm").addEventListener("submit", async function(event) {
+                event.preventDefault();
+
+                const id_ponto = document.getElementById("id_ponto").value;
+                const hora_inicio = document.getElementById("hora_inicio").value;
+                const hora_final = document.getElementById("hora_final").value;
+
+                try {
+                    const token = localStorage.getItem("token");
+                    const response = await fetch("http://127.0.0.1:5000/dashboard/enterprise", {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ id_ponto, hora_inicio, hora_final }),
+                    });
+
+                    if (await response.ok) {
+                        document.getElementById("editSuccess").innerText = "Ponto editado com sucesso!";
+                        document.getElementById("editSuccess").style.display = "block";
+                    } else {
+                        alert("Erro ao editar ponto.");
+                    }
+                } catch (error) {
+                    console.error("Erro na requisição:", error);
+                }
+            });
+
+            // Função para deletar um ponto específico
+            document.getElementById("deletePointForm").addEventListener("submit", async function(event) {
+                event.preventDefault();
+
+                const id_ponto = document.getElementById("id_ponto_delete").value;
+
+                try {
+                    const token = localStorage.getItem("token");
+                    const response = await fetch("http://127.0.0.1:5000/dashboard/enterprise", {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ id_ponto }),
+                    });
+
+                    if (await response.ok) {
+                        document.getElementById("deleteSuccess").innerText = "Ponto deletado com sucesso!";
+                        document.getElementById("deleteSuccess").style.display = "block";
+                    } else {
+                        document.getElementById("deleteError").innerText = "Erro ao deletar ponto.";
+                        document.getElementById("deleteError").style.display = "block";
+                    }
+                } catch (error) {
+                    console.error("Erro na requisição:", error);
+                }
+            });
+        </script>
+    </body>
+</html>

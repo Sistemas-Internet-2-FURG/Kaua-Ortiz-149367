@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Login</title>
+    <link rel="stylesheet" href="login_enterprise.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div class="form-container login-container">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="company">Company:</label>
+                    <input type="text" id="company" name="company" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <p class="error" id="loginError" style="display: none; color: red;"></p>
+                <button type="submit">Enter</button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div class="form-container register-container">
+            <h2>Register</h2>
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="new-company">New Company:</label>
+                    <input type="text" id="new-company" name="new-company" required>
+                </div>
+                <div class="input-group">
+                    <label for="new-password">New Password:</label>
+                    <input type="password" id="new-password" name="new-password" required>
+                </div>
+                <div class="input-group">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required>
+                </div>
+                <p class="state" id="registerState" style="display: none;"></p>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Função para fazer login
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const company = document.getElementById("company").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch("http://localhost:5000/login/enterprise", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ company, password }),
+                });
+
+                if (await response.ok) {
+                    const data = await response.json();
+                    // Armazena o token JWT no localStorage
+                    localStorage.setItem("token", data.access_token);
+                    window.location.href = "dashboard_enterprise.html";
+                } else {
+                    document.getElementById("loginError").innerText = "Usuário ou senha inválidos.";
+                    document.getElementById("loginError").style.display = "block";
+                }
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                document.getElementById("loginError").innerText = "Erro ao tentar fazer login.";
+                document.getElementById("loginError").style.display = "block";
+            }
+        });
+
+        // Função para registrar nova empresa
+        document.getElementById("registerForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const newCompany = document.getElementById("new-company").value;
+            const newPassword = document.getElementById("new-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (newPassword !== confirmPassword) {
+                document.getElementById("registerState").innerText = "As senhas não coincidem.";
+                document.getElementById("registerState").style.display = "block";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:5000/register/enterprise", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ new_company: newCompany, new_password: newPassword, confirm_password: confirmPassword }),
+                });
+
+                if (await response.ok) {
+                    document.getElementById("registerState").innerText = "Registro bem-sucedido!";
+                } else {
+                    document.getElementById("registerState").innerText = "Erro ao registrar.";
+                }
+                document.getElementById("registerState").style.display = "block";
+            } catch (error) {
+                console.error("Erro na requisição:", error);
+                document.getElementById("registerState").innerText = "Erro ao tentar registrar.";
+                document.getElementById("registerState").style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>
